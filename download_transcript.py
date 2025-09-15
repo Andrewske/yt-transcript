@@ -2,6 +2,7 @@
 import sys
 import re
 import argparse
+import subprocess
 from datetime import datetime
 from pathlib import Path
 import requests
@@ -172,6 +173,16 @@ def save_transcript(video_title, markdown_content):
     return filepath
 
 
+def analyze_transcript_async(file_path):
+    """Call analysis script in background"""
+    try:
+        subprocess.Popen([
+            "uv", "run", "python", "analyze_transcript.py", str(file_path)
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print(f"Note: Transcript analysis skipped - {e}")
+
+
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
@@ -218,6 +229,9 @@ def main():
         filepath = save_transcript(video_title, markdown)
 
         print(f"✓ Transcript saved to: {filepath}")
+
+        # Start analysis in background
+        analyze_transcript_async(filepath)
 
     except Exception as e:
         print(f"✗ Error: {e}")
